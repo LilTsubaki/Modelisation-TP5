@@ -45,9 +45,16 @@
 #include <math.h> 
 #include <iostream>
 #include "Vector3d.h"
+#include "Bernstein.h"
+#include <math.h>
 #define M_PI 3.14159265358979323846
 
+#define ESC 27
 
+
+
+static int pointSelect = -1;
+static std::vector<Vector3D> pointsCaracs;
 
 GLvoid hermite(Vector3D p0, Vector3D p1, Vector3D v0, Vector3D v1)
 {
@@ -81,6 +88,36 @@ GLvoid hermite(Vector3D p0, Vector3D p1, Vector3D v0, Vector3D v1)
 	glEnd();
 }
 
+GLvoid bernstein(std::vector<Vector3D> pointCarac, int n)
+{
+	std::vector<Bernstein> lesBernstein;
+	double u = 0;
+	double x;
+	double y;
+	double z;
+
+	for(int i = 0; i <= n; i++)
+	{
+		std::vector<double> deg;
+		Bernstein bTemp(i, n-1);
+		lesBernstein.push_back(bTemp); 
+	}
+
+	glBegin(GL_LINE_STRIP);
+		glColor3f (1.0, 0.0, 1.0);
+	for(int i = 0; i <= 10; i++)
+	{
+		Vector3D point;
+		for(int j = 0; j < n; j++)
+		{
+			point += pointCarac.at(j)*lesBernstein.at(j).getInfluence(u);
+		}
+		//std::cout << "--------------------"<< std::endl;
+		glVertex3f (point.x(), point.y(), point.z());
+		u+=0.1;
+	}
+	glEnd();
+}
 
 void display(void)
 {
@@ -91,13 +128,22 @@ void display(void)
  * (0.25, 0.25, 0.0) and (0.75, 0.75, 0.0) 
  */
   
+   
 
-   Vector3D p0(0,0,0);
-	Vector3D p1(1,0,0);
-	Vector3D v0(1,1,0);
-	Vector3D v1(1,-1,0);
+	glBegin(GL_LINE_STRIP);
+		glColor3f (1.0, 1.0, 1.0);
+	for(int i = 0; i < pointsCaracs.size(); i++)
+	{
+		//std::cout << pointsCaracs.at(i).x() << " | "  << pointsCaracs.at(i).y() << " | " << pointsCaracs.at(i).z() << std::endl;
+		glVertex3f (pointsCaracs.at(i).x(), pointsCaracs.at(i).y(), pointsCaracs.at(i).z());
+	}
+	glEnd();
 
-  hermite(p0,p1,v0,v1);
+
+
+  //hermite(p0,p1,v0,v1);
+
+   bernstein(pointsCaracs, 4);
 
 
 /* Swap the buffers to show the one
@@ -120,6 +166,63 @@ void init (void)
    glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 }
 
+void keyboard(unsigned char key, int x, int y)
+{
+	float tx=0.0;
+	float ty=0.0;
+
+   switch (key) {
+  
+   case '1' : 
+	   pointSelect = 0;
+	   break;
+	case '2' : 
+	   pointSelect = 1;
+	   break;
+	case '3' : 
+	   pointSelect = 2;
+	   break;
+	case '4' : 
+	   pointSelect = 3;
+	   break;
+
+   case 'd':
+         tx=0.1;
+		 ty=0;
+      break;
+   case 'q':
+         tx=-0.1;
+		 ty=0;
+      break;
+   case 'z':
+         ty=0.1;
+		 tx=0;
+      break;
+   case 's':
+         ty=-0.1;
+		 tx=0;
+      break;
+   case ESC:
+      exit(0);
+      break;
+   default :
+	   tx=0;
+	   ty=0;
+   }
+
+   if(pointSelect != -1 && (ty !=0 || tx !=0))
+   {
+	   //std::cout << "iiiiiiiiiiiiiif" << std::endl;
+	   
+	   //std::cout << pointsCaracs.size() << std::endl;
+	   Vector3D temp(Vector2D(tx+pointsCaracs.at(pointSelect).x(), ty+pointsCaracs.at(pointSelect).y()));
+	   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
+	   pointsCaracs.insert(pointsCaracs.begin() +pointSelect, temp);
+   }
+
+   glutPostRedisplay();
+}
+
 /*
  * Declare initial window size, position, and display mode
  * (double buffer and RGB).  Open window with "hello"
@@ -133,8 +236,22 @@ int main(int argc, char** argv)
    glutInitDisplayMode (GLUT_DOUBLE | GLUT_RGB);
    glutInitWindowSize (500, 500);
    glutInitWindowPosition (100, 100);
+   
+   
+   Vector3D p0(0,0,0);
+	Vector3D p1(0.25,0.5,0);
+	Vector3D v0(0.75,0.5,0);
+	Vector3D v1(1,0,0);
+
+	pointsCaracs.push_back(p0);
+	pointsCaracs.push_back(p1);
+	pointsCaracs.push_back(v0);
+	pointsCaracs.push_back(v1);
+
+
    glutCreateWindow ("hello");
    init ();
+   glutKeyboardFunc(keyboard);
    glutDisplayFunc(display);
    glutMainLoop();
    return 0;   /* ANSI C requires main to return int. */
