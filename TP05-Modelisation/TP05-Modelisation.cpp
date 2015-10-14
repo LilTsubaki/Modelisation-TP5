@@ -55,6 +55,7 @@
 
 static int pointSelect = -1;
 static std::vector<Vector3D> pointsCaracs;
+static Vector3D temp;
 
 GLvoid hermite(Vector3D p0, Vector3D p1, Vector3D v0, Vector3D v1)
 {
@@ -145,6 +146,14 @@ void display(void)
 
    bernstein(pointsCaracs, 4);
 
+    glBegin(GL_LINE_LOOP);
+		glColor3f (0.0, 1.0, 1.0);
+			glVertex3f(temp.x()-0.01, temp.y()-0.01, 0.0);
+			glVertex3f(temp.x()-0.01, temp.y()+0.01, 0.0);
+			glVertex3f(temp.x()+0.01, temp.y()+0.01, 0.0);
+			glVertex3f(temp.x()+0.01, temp.y()-0.01, 0.0);
+		glEnd();
+
 
 /* Swap the buffers to show the one
  * on which we writed
@@ -210,12 +219,10 @@ void keyboard(unsigned char key, int x, int y)
 	   ty=0;
    }
 
+
+   temp = Vector3D(Vector2D(tx+pointsCaracs.at(pointSelect).x(), ty+pointsCaracs.at(pointSelect).y()));
    if(pointSelect != -1 && (ty !=0 || tx !=0))
-   {
-	   //std::cout << "iiiiiiiiiiiiiif" << std::endl;
-	   
-	   //std::cout << pointsCaracs.size() << std::endl;
-	   Vector3D temp(Vector2D(tx+pointsCaracs.at(pointSelect).x(), ty+pointsCaracs.at(pointSelect).y()));
+   {	   
 	   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
 	   pointsCaracs.insert(pointsCaracs.begin() +pointSelect, temp);
    }
