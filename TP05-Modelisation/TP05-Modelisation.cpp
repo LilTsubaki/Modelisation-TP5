@@ -196,18 +196,22 @@ void keyboard(unsigned char key, int x, int y)
 	   break;
 
    case 'd':
+	   //std::cout << '\a';
          tx=0.1;
 		 ty=0;
       break;
    case 'q':
+	   //std::cout << '\a';
          tx=-0.1;
 		 ty=0;
       break;
    case 'z':
+	   //std::cout << '\a';
          ty=0.1;
 		 tx=0;
       break;
    case 's':
+	   //std::cout << '\a';
          ty=-0.1;
 		 tx=0;
       break;
