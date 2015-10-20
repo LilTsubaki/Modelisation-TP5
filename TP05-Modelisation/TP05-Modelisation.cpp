@@ -57,6 +57,27 @@ static int pointSelect = -1;
 static std::vector<Vector3D> pointsCaracs;
 static Vector3D temp;
 
+Vector3D casteljau(std::vector<Vector3D> points, double u)
+{
+	Vector3D pointRetour;
+	if(points.size() ==2)
+	{
+		pointRetour = points.at(0)+((points.at(1) - points.at(0)) * u);
+		return pointRetour;
+	}
+	else
+	{
+		std::vector<Vector3D> newPoints;
+		for(int i = 0; i < points.size()-1; i++)
+		{
+			newPoints.push_back(points.at(i)+((points.at(i+1) - points.at(i)) * u));
+		}
+		pointRetour = casteljau(newPoints, u); 
+	}
+	return pointRetour;
+}
+
+
 GLvoid hermite(Vector3D p0, Vector3D p1, Vector3D v0, Vector3D v1)
 {
 	double u = 0;
@@ -131,6 +152,14 @@ void display(void)
   
    
 
+	
+
+
+
+  //hermite(p0,p1,v0,v1);
+   
+
+   /************points caracs**************/
 	glBegin(GL_LINE_STRIP);
 		glColor3f (1.0, 1.0, 1.0);
 	for(int i = 0; i < pointsCaracs.size(); i++)
@@ -140,12 +169,24 @@ void display(void)
 	}
 	glEnd();
 
+   //bernstein(pointsCaracs, 4);
+ 
+
+	/************casteljau**************/
+	double u = 0;
+	glBegin(GL_LINE_STRIP);
+		glColor3f (1.0, 0.0, 1.0);
+	for(int i = 0; i <= 10; i++)
+	{
+		Vector3D point = casteljau(pointsCaracs, u);
+		//std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
+		glVertex3f (point.x(), point.y(),point.z());
+		u+=0.1;
+	}
+	glEnd();
 
 
-  //hermite(p0,p1,v0,v1);
-
-   bernstein(pointsCaracs, 4);
-
+	/************carré autour des points caracs**************/
     glBegin(GL_LINE_LOOP);
 		glColor3f (0.0, 1.0, 1.0);
 			glVertex3f(temp.x()-0.01, temp.y()-0.01, 0.0);
@@ -259,7 +300,7 @@ int main(int argc, char** argv)
 	pointsCaracs.push_back(v0);
 	pointsCaracs.push_back(v1);
 
-
+	
    glutCreateWindow ("hello");
    init ();
    glutKeyboardFunc(keyboard);
