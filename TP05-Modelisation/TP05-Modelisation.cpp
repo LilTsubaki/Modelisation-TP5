@@ -55,7 +55,9 @@
 
 static int pointSelect = -1;
 static std::vector<Vector3D> pointsCaracs;
+static std::vector<Vector3D> pointsCaracs2;
 static Vector3D temp;
+static bool b = false;
 
 Vector3D casteljau(std::vector<Vector3D> points, double u)
 {
@@ -110,9 +112,10 @@ GLvoid hermite(Vector3D p0, Vector3D p1, Vector3D v0, Vector3D v1)
 	glEnd();
 }
 
-GLvoid bernstein(std::vector<Vector3D> pointCarac, int n)
+std::vector<Vector3D> bernstein(std::vector<Vector3D> pointCarac, int n)
 {
 	std::vector<Bernstein> lesBernstein;
+	std::vector<Vector3D> lesPoints;
 	double u = 0;
 	double x;
 	double y;
@@ -136,9 +139,96 @@ GLvoid bernstein(std::vector<Vector3D> pointCarac, int n)
 		}
 		//std::cout << "--------------------"<< std::endl;
 		glVertex3f (point.x(), point.y(), point.z());
+		lesPoints.push_back(point);
 		u+=0.1;
 	}
 	glEnd();
+	return lesPoints;
+}
+
+void surfaceBernstein(std::vector<Vector3D> pointCarac, std::vector<Vector3D> pointCarac2, int n)
+{
+
+	std::vector<Vector3D> b1 = bernstein(pointsCaracs, n);
+	std::vector<Vector3D> b2 = bernstein(pointsCaracs2, n);
+
+	for (int i = 0; i < b1.size(); i++)
+	{
+		glBegin(GL_LINE_STRIP);
+		glColor3f(1.0, 0.0, 1.0);
+		glVertex3f(b1[i].x(), b1[i].y(), b1[i].z());
+		glVertex3f(b2[i].x(), b2[i].y(), b2[i].z());
+		glEnd();
+	}
+}
+
+void cercleAutourBernstein(std::vector<Vector3D> pointCarac, int n, double nbPointsCercle, double rayonCercle)
+{
+	double epsilon = 0.0001;
+	double u = 0;
+	std::vector<Bernstein> lesBernstein;
+	for (int i = 0; i <= n; i++)
+	{
+		std::vector<double> deg;
+		Bernstein bTemp(i, n - 1);
+		lesBernstein.push_back(bTemp);
+	}
+
+
+	std::vector<Vector3D> b1 = bernstein(pointsCaracs, n);
+	std::vector<Vector3D> orthos1;
+	std::vector<Vector3D> orthos2;
+	//on parcours tout les points calculer par l'algo de bernstein
+	for (int i = 0; i < b1.size(); i++)
+	{
+		//on cherche la tangeant au point i
+		Vector3D pointPrecedent;
+		Vector3D pointSuivant;
+		//on calcul deux points proches du notre 
+		for (int j = 0; j < n; j++)
+		{
+			pointPrecedent += pointCarac.at(j)*lesBernstein.at(j).getInfluence(u- epsilon);
+			pointSuivant += pointCarac.at(j)*lesBernstein.at(j).getInfluence(u+ epsilon);
+		}
+		//on calcul la tangeante a partir de nos deux points
+		Vector3D tangeante = (pointSuivant - pointPrecedent) / (2 * epsilon);
+		tangeante.normalize();
+
+		//on prend un premier vecteur "random" afin de trouver un premier vecteur orthogonal à la tangeante
+		Vector3D random(0.2, 0.1, 0.3);
+		Vector3D ortho1 = tangeante^random;
+		Vector3D ortho2 = ortho1^tangeante;
+
+		ortho1.normalize();
+		ortho2.normalize();
+
+		orthos1.push_back(ortho1);
+		orthos2.push_back(ortho2);
+
+		glBegin(GL_LINE_STRIP);
+		glColor3f(1.0, 1.0, 0.0);
+		for (double deg = 0; deg <= 2 * M_PI; deg += (2 * M_PI) / nbPointsCercle)
+		{
+			Vector3D pointCercle = b1[i] + (rayonCercle*cos(deg)*ortho1 + rayonCercle*sin(deg)*ortho2);
+			glVertex3f(pointCercle.x(), pointCercle.y(), pointCercle.z());
+		}
+		glEnd();
+		u += 0.1;
+	}
+
+	//calcul des points du cercle
+	for (double deg = 0; deg <= 2 * M_PI; deg += (2 * M_PI) / nbPointsCercle)
+	{
+		glBegin(GL_LINE_STRIP);
+		glColor3f(0.8, 0.8, 0.8);
+		for (int j = 0; j < b1.size(); j++)
+		{
+			Vector3D pointCercle = b1[j] + (rayonCercle*cos(deg)*orthos1[j] + rayonCercle*sin(deg)*orthos2[j]);
+			glVertex3f(pointCercle.x(), pointCercle.y(), pointCercle.z());
+		}
+		glEnd();
+	}
+
 }
 
 void display(void)
@@ -152,39 +242,58 @@ void display(void)
   
    
 
-	
-
-
-
-  //hermite(p0,p1,v0,v1);
+   /*Vector3D p0(0, 0, 0);
+   Vector3D p1(1, 0, 0);
+   Vector3D v0(1, 1, 0);
+   Vector3D v1(1, -1, 0);
+   
+  
+  hermite(p0,p1,v0,v1);*/
    
 
    /************points caracs**************/
-	glBegin(GL_LINE_STRIP);
+	/*glBegin(GL_LINE_STRIP);
 		glColor3f (1.0, 1.0, 1.0);
 	for(int i = 0; i < pointsCaracs.size(); i++)
 	{
 		//std::cout << pointsCaracs.at(i).x() << " | "  << pointsCaracs.at(i).y() << " | " << pointsCaracs.at(i).z() << std::endl;
 		glVertex3f (pointsCaracs.at(i).x(), pointsCaracs.at(i).y(), pointsCaracs.at(i).z());
 	}
-	glEnd();
-
-   //bernstein(pointsCaracs, 4);
- 
-
-	/************casteljau**************/
-	double u = 0;
-	glBegin(GL_LINE_STRIP);
-		glColor3f (1.0, 0.0, 1.0);
-	for(int i = 0; i <= 10; i++)
+	glEnd();//*/
+	
+	/****************Décomenté pour double bernstein lisse***************************/
+	
+	/*glBegin(GL_LINE_STRIP);
+	glColor3f(1.0, 1.0, 0.0);
+	for (int i = 0; i < pointsCaracs2.size(); i++)
 	{
-		Vector3D point = casteljau(pointsCaracs, u);
-		//std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
-		glVertex3f (point.x(), point.y(),point.z());
-		u+=0.1;
+		//std::cout << pointsCaracs.at(i).x() << " | "  << pointsCaracs.at(i).y() << " | " << pointsCaracs.at(i).z() << std::endl;
+		glVertex3f(pointsCaracs2.at(i).x(), pointsCaracs2.at(i).y(), pointsCaracs2.at(i).z());
 	}
 	glEnd();
 
+	bernstein(pointsCaracs, 4);
+   bernstein(pointsCaracs2, 4);//*/
+ 
+   /************casteljau**************/
+   /*double u = 0;
+   glBegin(GL_LINE_STRIP);
+   glColor3f (1.0, 0.0, 1.0);
+   for(int i = 0; i <= 10; i++)
+   {
+   Vector3D point = casteljau(pointsCaracs, u);
+   //std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
+   glVertex3f (point.x(), point.y(),point.z());
+   u+=0.1;
+   }
+   glEnd();//*/
+	
+   //surfaceBernstein(pointsCaracs, pointsCaracs2, 4);
+
+	
+
+
+	cercleAutourBernstein(pointsCaracs, 4, 10, 0.05);
 
 	/************carré autour des points caracs**************/
     glBegin(GL_LINE_LOOP);
@@ -235,6 +344,15 @@ void keyboard(unsigned char key, int x, int y)
 	case '4' : 
 	   pointSelect = 3;
 	   break;
+	case '5':
+		pointSelect = 4;
+		break;
+	case '6':
+		pointSelect = 5;
+		break;
+	case '7':
+		pointSelect = 6;
+		break;
 
    case 'd':
 	   //std::cout << '\a';
@@ -264,13 +382,72 @@ void keyboard(unsigned char key, int x, int y)
 	   ty=0;
    }
 
+   temp = Vector3D(Vector2D(tx + pointsCaracs.at(pointSelect).x(), ty + pointsCaracs.at(pointSelect).y()));
+   if (pointSelect != -1 && (ty != 0 || tx != 0))
+   {
+	   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
+	   pointsCaracs.insert(pointsCaracs.begin() + pointSelect, temp);
+   }//*/
 
-   temp = Vector3D(Vector2D(tx+pointsCaracs.at(pointSelect).x(), ty+pointsCaracs.at(pointSelect).y()));
+   /****************Décomenté pour double bernstein lisse***************************/
+   
+   /*if (pointSelect <= 3 && pointSelect >= 0)
+   {
+	   temp = Vector3D(Vector2D(tx + pointsCaracs.at(pointSelect).x(), ty + pointsCaracs.at(pointSelect).y()));
+	   b = false;
+   }
+   else
+   {  
+	   if (pointSelect > 3 && pointsCaracs2.size() > 0)
+	   {
+		   pointSelect -= 3;
+		   temp = Vector3D(Vector2D(tx + pointsCaracs2.at(pointSelect).x(), ty + pointsCaracs2.at(pointSelect).y()));
+		   pointSelect += 3;
+		   b = true;
+	   }
+   }
+
    if(pointSelect != -1 && (ty !=0 || tx !=0))
    {	   
-	   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
-	   pointsCaracs.insert(pointsCaracs.begin() +pointSelect, temp);
-   }
+	   if (!b)
+	   {
+			pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
+			pointsCaracs.insert(pointsCaracs.begin() +pointSelect, temp);
+
+			if (pointSelect == 2)
+			{
+				Vector3D pointSuivant = pointsCaracs2.at(0) + (pointsCaracs2.at(0) - pointsCaracs.at(pointSelect));
+				pointsCaracs2.erase(pointsCaracs2.begin() + 1);
+				pointsCaracs2.insert(pointsCaracs2.begin() + 1, pointSuivant);
+			}
+
+		   if (pointSelect == 3)
+		   {
+			   pointsCaracs2.erase(pointsCaracs2.begin());
+			   pointsCaracs2.insert(pointsCaracs2.begin(), temp);
+
+			   Vector3D pointSuivant = pointsCaracs2.at(0) + (pointsCaracs2.at(0) - pointsCaracs.at(2));
+			   pointsCaracs2.erase(pointsCaracs2.begin() + 1);
+			   pointsCaracs2.insert(pointsCaracs2.begin() + 1, pointSuivant);
+		   }
+			
+	   }
+	   else
+	   {
+		   pointSelect -= 3;
+		   pointsCaracs2.erase(pointsCaracs2.begin() + pointSelect);
+		   pointsCaracs2.insert(pointsCaracs2.begin() + pointSelect, temp);
+		   if (pointSelect == 1)
+		   {
+			   Vector3D pointPrecedent = pointsCaracs2.at(0)+(pointsCaracs2.at(0)- pointsCaracs2.at(1));
+			   pointsCaracs.erase(pointsCaracs.begin() + pointSelect+1);
+			   pointsCaracs.insert(pointsCaracs.begin() + pointSelect+1, pointPrecedent);
+		   }
+		   
+		   
+		   pointSelect += 3;
+	   }
+   }//*/
 
    glutPostRedisplay();
 }
@@ -290,16 +467,38 @@ int main(int argc, char** argv)
    glutInitWindowPosition (100, 100);
    
    
-   Vector3D p0(0,0,0);
-	Vector3D p1(0.25,0.5,0);
-	Vector3D v0(0.75,0.5,0);
-	Vector3D v1(1,0,0);
+    Vector3D p0(0.05,0.1,0);
+	Vector3D p1(0.167,0.5,0);
+	Vector3D v0(0.33,0.7,0.5);
+	Vector3D v1(0.5,0.1,0.5);
 
 	pointsCaracs.push_back(p0);
 	pointsCaracs.push_back(p1);
 	pointsCaracs.push_back(v0);
-	pointsCaracs.push_back(v1);
+	pointsCaracs.push_back(v1);//*/
 
+
+	/****************Décomenté pour double bernstein lisse***************************/
+	/*Vector3D p5(0.667, 0.5, 0);
+	Vector3D p6(0.83, 0.5, 0);
+	Vector3D p7(0.95, 0.1, 0);
+
+	pointsCaracs2.push_back(v1);
+	pointsCaracs2.push_back(v1+(v1-v0));
+	pointsCaracs2.push_back(p6);
+	pointsCaracs2.push_back(p7);//*/
+
+
+	/****************Décomenté pour surface***************************/
+	Vector3D p5(0.05, 0.3, 0.5);
+	Vector3D p6(0.167, 0.7, 0.5);
+	Vector3D p7(0.33, 0.9, 0.5);
+	Vector3D p8(0.5, 0.3, 0.5);
+
+	pointsCaracs2.push_back(p5);
+	pointsCaracs2.push_back(p6);
+	pointsCaracs2.push_back(p7);
+	pointsCaracs2.push_back(p8);//*/
 	
    glutCreateWindow ("hello");
    init ();
