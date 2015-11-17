@@ -148,7 +148,6 @@ std::vector<Vector3D> bernstein(std::vector<Vector3D> pointCarac, int n)
 
 void surfaceBernstein(std::vector<Vector3D> pointCarac, std::vector<Vector3D> pointCarac2, int n)
 {
-
 	std::vector<Vector3D> b1 = bernstein(pointsCaracs, n);
 	std::vector<Vector3D> b2 = bernstein(pointsCaracs2, n);
 
@@ -231,6 +230,16 @@ void cercleAutourBernstein(std::vector<Vector3D> pointCarac, int n, double nbPoi
 
 }
 
+Vector3D surfaceCasteljau(std::vector<std::vector<Vector3D>> lesListsCaracs, float u1, float u2)
+{
+	std::vector<Vector3D> points;
+	for (int i = 0; i < lesListsCaracs.size(); i++)
+	{
+		points.push_back(casteljau(lesListsCaracs[i], u1));
+	}
+	return casteljau(points, u2);
+}
+
 void display(void)
 {
 /* clear all pixels  */
@@ -252,7 +261,7 @@ void display(void)
    
 
    /************points caracs**************/
-	/*glBegin(GL_LINE_STRIP);
+	glBegin(GL_LINE_STRIP);
 		glColor3f (1.0, 1.0, 1.0);
 	for(int i = 0; i < pointsCaracs.size(); i++)
 	{
@@ -261,18 +270,18 @@ void display(void)
 	}
 	glEnd();//*/
 	
-	/****************Décomenté pour double bernstein lisse***************************/
 	
-	/*glBegin(GL_LINE_STRIP);
+	
+	glBegin(GL_LINE_STRIP);
 	glColor3f(1.0, 1.0, 0.0);
 	for (int i = 0; i < pointsCaracs2.size(); i++)
 	{
 		//std::cout << pointsCaracs.at(i).x() << " | "  << pointsCaracs.at(i).y() << " | " << pointsCaracs.at(i).z() << std::endl;
 		glVertex3f(pointsCaracs2.at(i).x(), pointsCaracs2.at(i).y(), pointsCaracs2.at(i).z());
 	}
-	glEnd();
-
-	bernstein(pointsCaracs, 4);
+	glEnd();//*/
+	/****************Décomenté pour double bernstein lisse***************************/
+	/*bernstein(pointsCaracs, 4);
    bernstein(pointsCaracs2, 4);//*/
  
    /************casteljau**************/
@@ -288,12 +297,45 @@ void display(void)
    }
    glEnd();//*/
 	
-   //surfaceBernstein(pointsCaracs, pointsCaracs2, 4);
 
-	
+	/************TP-06*************/
+	//surfaceBernstein(pointsCaracs, pointsCaracs2, 4);
+	//cercleAutourBernstein(pointsCaracs, 4, 10, 0.05);
 
 
-	cercleAutourBernstein(pointsCaracs, 4, 10, 0.05);
+	/************surface casteljau**************/
+   std::vector<std::vector<Vector3D>> lesListsCaracs;
+   lesListsCaracs.push_back(pointsCaracs);
+   lesListsCaracs.push_back(pointsCaracs2);
+   double u1 = 0;
+   double u2 = 0;
+   
+   for (int i = 0; i <= 10; i++)
+   {
+	   glBegin(GL_LINE_STRIP);
+	   glColor3f(1.0, 0.0, 1.0);
+	   for (int j = 0; j <= 10; j++)
+	   {
+		   Vector3D point = surfaceCasteljau(lesListsCaracs, i/10.0, j/10.0);
+		   //std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
+		   glVertex3f(point.x(), point.y(), point.z());
+	   }
+	   glEnd();
+   }
+
+   for (int i = 0; i <= 10; i++)
+   {
+	   glBegin(GL_LINE_STRIP);
+	   glColor3f(1.0, 0.0, 1.0);
+	   for (int j = 0; j <= 10; j++)
+	   {
+		   Vector3D point = surfaceCasteljau(lesListsCaracs, j/10.0, i/10.0);
+		   //std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
+		   glVertex3f(point.x(), point.y(), point.z());
+	   }
+	   glEnd();
+   }//*/
+   
 
 	/************carré autour des points caracs**************/
     glBegin(GL_LINE_LOOP);
@@ -353,6 +395,10 @@ void keyboard(unsigned char key, int x, int y)
 	case '7':
 		pointSelect = 6;
 		break;
+		/***************décommenter pour surface**************/
+	case '8':
+		pointSelect = 7;
+		break;//*/
 
    case 'd':
 	   //std::cout << '\a';
@@ -382,12 +428,32 @@ void keyboard(unsigned char key, int x, int y)
 	   ty=0;
    }
 
-   temp = Vector3D(Vector2D(tx + pointsCaracs.at(pointSelect).x(), ty + pointsCaracs.at(pointSelect).y()));
-   if (pointSelect != -1 && (ty != 0 || tx != 0))
+   if(pointSelect >= 0 && pointSelect <= 3)
    {
-	   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
-	   pointsCaracs.insert(pointsCaracs.begin() + pointSelect, temp);
+		temp = Vector3D(Vector2D(tx + pointsCaracs.at(pointSelect).x(), ty + pointsCaracs.at(pointSelect).y()));
+	   if(ty != 0 || tx != 0)
+	   {
+		   pointsCaracs.erase(pointsCaracs.begin() + pointSelect);
+		   pointsCaracs.insert(pointsCaracs.begin() + pointSelect, temp);
+	   }
+   }
+   /**********************Décommenté pour les surfaces béziers et casteljau*************************/
+   else
+   {
+
+	   if (pointSelect >= 4 && pointSelect <= 7)
+	   {
+		   pointSelect -= 4;
+		   temp = Vector3D(Vector2D(tx + pointsCaracs2.at(pointSelect).x(), ty + pointsCaracs2.at(pointSelect).y()));
+		   if (ty != 0 || tx != 0)
+		   {
+			   pointsCaracs2.erase(pointsCaracs2.begin() + pointSelect);
+			   pointsCaracs2.insert(pointsCaracs2.begin() + pointSelect, temp);
+		   }
+		   pointSelect += 4;
+	   }
    }//*/
+   
 
    /****************Décomenté pour double bernstein lisse***************************/
    
