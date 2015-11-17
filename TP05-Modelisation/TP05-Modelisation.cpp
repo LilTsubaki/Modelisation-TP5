@@ -56,6 +56,7 @@
 static int pointSelect = -1;
 static std::vector<Vector3D> pointsCaracs;
 static std::vector<Vector3D> pointsCaracs2;
+static std::vector<Vector3D> pointsCaracs3;
 static Vector3D temp;
 static bool b = false;
 
@@ -159,6 +160,15 @@ void surfaceBernstein(std::vector<Vector3D> pointCarac, std::vector<Vector3D> po
 		glVertex3f(b2[i].x(), b2[i].y(), b2[i].z());
 		glEnd();
 	}
+
+	for (int i = 0; i < b1.size()-1; i++)
+	{
+		glBegin(GL_LINE_STRIP);
+		glColor3f(1.0, 0.0, 1.0);
+		glVertex3f(b1[i].x(), b1[i].y(), b1[i].z());
+		glVertex3f(b2[i+1].x(), b2[i+1].y(), b2[i+1].z());
+		glEnd();
+	}
 }
 
 void cercleAutourBernstein(std::vector<Vector3D> pointCarac, int n, double nbPointsCercle, double rayonCercle)
@@ -173,7 +183,7 @@ void cercleAutourBernstein(std::vector<Vector3D> pointCarac, int n, double nbPoi
 		lesBernstein.push_back(bTemp);
 	}
 
-
+	std::vector<Vector3D> allPoints;
 	std::vector<Vector3D> b1 = bernstein(pointsCaracs, n);
 	std::vector<Vector3D> orthos1;
 	std::vector<Vector3D> orthos2;
@@ -208,11 +218,23 @@ void cercleAutourBernstein(std::vector<Vector3D> pointCarac, int n, double nbPoi
 		glColor3f(1.0, 1.0, 0.0);
 		for (double deg = 0; deg <= 2 * M_PI; deg += (2 * M_PI) / nbPointsCercle)
 		{
-			Vector3D pointCercle = b1[i] + (rayonCercle*cos(deg)*ortho1 + rayonCercle*sin(deg)*ortho2);
+			Vector3D pointCercle = b1[i] + (rayonCercle*cos(deg)*ortho1 + rayonCercle*sin(deg)*ortho2); 
+			allPoints.push_back(pointCercle);
 			glVertex3f(pointCercle.x(), pointCercle.y(), pointCercle.z());
 		}
 		glEnd();
 		u += 0.1;
+	}
+	
+	for (int i = 0; i < allPoints.size() - nbPointsCercle -2; i++)
+	{
+		glBegin(GL_LINE_STRIP);
+		glColor3f(0.8, 0.8, 0.8);
+		Vector3D p1 = allPoints[i];
+		Vector3D p2 = allPoints[i+nbPointsCercle+2];
+		glVertex3f(p1.x(), p1.y(), p1.z());
+		glVertex3f(p2.x(), p2.y(), p2.z());
+		glEnd();
 	}
 
 	//calcul des points du cercle
@@ -239,7 +261,6 @@ Vector3D surfaceCasteljau(std::vector<std::vector<Vector3D>> lesListsCaracs, flo
 	}
 	return casteljau(points, u2);
 }
-
 void display(void)
 {
 /* clear all pixels  */
@@ -280,6 +301,16 @@ void display(void)
 		glVertex3f(pointsCaracs2.at(i).x(), pointsCaracs2.at(i).y(), pointsCaracs2.at(i).z());
 	}
 	glEnd();//*/
+
+	glBegin(GL_LINE_STRIP);
+	glColor3f(1.0, 0.5, 0.0);
+	for (int i = 0; i < pointsCaracs3.size(); i++)
+	{
+		//std::cout << pointsCaracs.at(i).x() << " | "  << pointsCaracs.at(i).y() << " | " << pointsCaracs.at(i).z() << std::endl;
+		glVertex3f(pointsCaracs3.at(i).x(), pointsCaracs3.at(i).y(), pointsCaracs3.at(i).z());
+	}
+	glEnd();//*/
+
 	/****************Décomenté pour double bernstein lisse***************************/
 	/*bernstein(pointsCaracs, 4);
    bernstein(pointsCaracs2, 4);//*/
@@ -307,10 +338,13 @@ void display(void)
    std::vector<std::vector<Vector3D>> lesListsCaracs;
    lesListsCaracs.push_back(pointsCaracs);
    lesListsCaracs.push_back(pointsCaracs2);
+   lesListsCaracs.push_back(pointsCaracs3);
    double u1 = 0;
    double u2 = 0;
    
-   for (int i = 0; i <= 10; i++)
+   Vector3D lesPoints[11][11];
+
+   for (int i = 0; i <=10; i++)
    {
 	   glBegin(GL_LINE_STRIP);
 	   glColor3f(1.0, 0.0, 1.0);
@@ -318,10 +352,27 @@ void display(void)
 	   {
 		   Vector3D point = surfaceCasteljau(lesListsCaracs, i/10.0, j/10.0);
 		   //std::cout << point.x() << " | " << point.y() << " | " << point.z() << std::endl;
+		   lesPoints[i][j] = point;
 		   glVertex3f(point.x(), point.y(), point.z());
 	   }
 	   glEnd();
    }
+
+   for (int i = 0; i < 10; i++)
+   {
+	   for (int j = 0; j < 10; j++)
+	   {
+		   glBegin(GL_LINE_STRIP);
+		   glColor3f(1.0, 0.4, 1.0);
+		   Vector3D p1 = lesPoints[i][j];
+		   Vector3D p2 = lesPoints[i+1][j+1];
+		   glVertex3f(p1.x(), p1.y(), p1.z());
+		   glVertex3f(p2.x(), p2.y(), p2.z());
+		   glEnd();
+	   }
+	   
+   }
+
 
    for (int i = 0; i <= 10; i++)
    {
@@ -559,12 +610,23 @@ int main(int argc, char** argv)
 	Vector3D p5(0.05, 0.3, 0.5);
 	Vector3D p6(0.167, 0.7, 0.5);
 	Vector3D p7(0.33, 0.9, 0.5);
-	Vector3D p8(0.5, 0.3, 0.5);
+	Vector3D p8(0.6, 0.3, 0.5);
 
 	pointsCaracs2.push_back(p5);
 	pointsCaracs2.push_back(p6);
 	pointsCaracs2.push_back(p7);
 	pointsCaracs2.push_back(p8);//*/
+
+	Vector3D p9(0.05, 0.2, 0.5);
+	Vector3D p10(0.167, 0.6, 0.5);
+	Vector3D p11(0.33, 0.8, 0.5);
+	Vector3D p12(0.8, 0.2, 0.5);
+
+	pointsCaracs3.push_back(p9);
+	pointsCaracs3.push_back(p10);
+	pointsCaracs3.push_back(p11);
+	pointsCaracs3.push_back(p12);
+
 	
    glutCreateWindow ("hello");
    init ();
