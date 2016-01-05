@@ -30,15 +30,57 @@ GLvoid window_key(unsigned char key, int x, int y);
 GLvoid window_idle();
 
 static std::vector<Vector3D> centreCube;
+static Vector3D centreG;
+
+static std::vector<std::pair<Vector3D, float>> lesSpheres;
+
+bool opUnion(std::vector<std::pair<Vector3D, float>> lesSpheres, Vector3D centreCube)
+{
+	for (int i = 0; i < lesSpheres.size(); i++)
+	{
+		if (centreCube.distanceToPoint(lesSpheres.at(i).first) < lesSpheres.at(i).second)
+			return true;
+	}
+	return false;
+}
+
+bool opInter(std::vector<std::pair<Vector3D, float>> lesSpheres, Vector3D centreCube)
+{
+	for (int i = 0; i < lesSpheres.size(); i++)
+	{
+		if (centreCube.distanceToPoint(lesSpheres.at(i).first) > lesSpheres.at(i).second)
+			return false;
+	}
+	return true;
+}
+
+bool opDiff(std::vector<std::pair<Vector3D, float>> lesSpheres, Vector3D centreCube)
+{
+	bool b = centreCube.distanceToPoint(lesSpheres.at(0).first) < lesSpheres.at(0).second;
+	if (!b)
+		return b;
+	else
+	{
+		for (int i = 1; i < lesSpheres.size(); i++)
+		{
+			if (centreCube.distanceToPoint(lesSpheres.at(i).first) < lesSpheres.at(i).second)
+				b = false;
+		}
+		return b;
+	}
+}
 
 void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayon)
 {
 	//devant
 	Vector3D devant(centre.x(), centre.y(), centre.z() - 2 * rayon);
-	if(devant.distanceToPoint(centreSphere) > rayonInitial)
+	//if(devant.distanceToPoint(centreSphere) > rayonInitial)
+	//if(!opUnion(lesSpheres, devant))
+	//if (!opInter(lesSpheres, devant))
+	if (!opDiff(lesSpheres, devant))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
 		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
@@ -48,10 +90,13 @@ void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayo
 
 	//derriere
 	Vector3D derriere(centre.x(), centre.y(), centre.z() + 2 * rayon);
-	if (derriere.distanceToPoint(centreSphere) > rayonInitial)
+	//if (derriere.distanceToPoint(centreSphere) > rayonInitial)
+	//if (!opUnion(lesSpheres, derriere))
+	//if (!opInter(lesSpheres, derriere))
+	if (!opDiff(lesSpheres, derriere))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
 		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
@@ -61,10 +106,13 @@ void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayo
 	
 	//gauche
 	Vector3D gauche(centre.x() - 2 * rayon, centre.y(), centre.z());
-	if (gauche.distanceToPoint(centreSphere) > rayonInitial)
+	//if (gauche.distanceToPoint(centreSphere) > rayonInitial)
+	//if (!opUnion(lesSpheres, gauche))
+	//if (!opInter(lesSpheres, gauche))
+	if (!opDiff(lesSpheres, gauche))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
 		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
 		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
@@ -74,10 +122,13 @@ void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayo
 	
 	//droite
 	Vector3D droite(centre.x() + 2 * rayon, centre.y(), centre.z());
-	if (droite.distanceToPoint(centreSphere) > rayonInitial)
+	//if (droite.distanceToPoint(centreSphere) > rayonInitial)
+	//if (!opUnion(lesSpheres, droite))
+	//if (!opInter(lesSpheres, droite))
+	if (!opDiff(lesSpheres, droite))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
@@ -87,10 +138,13 @@ void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayo
 	
 	//dessous
 	Vector3D dessous(centre.x(), centre.y() - 2 * rayon, centre.z());
-	if (dessous.distanceToPoint(centreSphere) > rayonInitial)
+	//if (dessous.distanceToPoint(centreSphere) > rayonInitial)
+	//if (!opUnion(lesSpheres, dessous))
+	//if (!opInter(lesSpheres, dessous))
+	if (!opDiff(lesSpheres, dessous))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
@@ -100,10 +154,13 @@ void cube(Vector3D centreSphere, Vector3D centre, float rayonInitial, float rayo
 	
 	//dessus
 	Vector3D dessus(centre.x(), centre.y() + 2 * rayon, centre.z());
-	if (dessus.distanceToPoint(centreSphere) > rayonInitial)
+	//if (dessus.distanceToPoint(centreSphere) > rayonInitial)
+	//if (!opUnion(lesSpheres, dessus))
+	//if (!opInter(lesSpheres, dessus))
+	if (!opDiff(lesSpheres, dessus))
 	{
 		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 0.0, 1.0);
+		glColor3f(1.0, 1.0, 1.0);
 		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
 		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
@@ -134,7 +191,10 @@ void subdivision(Vector3D centreSphere, Vector3D centre, float rayonInitial, flo
 	}
 	else
 	{
-		if (centre.distanceToPoint(centreSphere) <= rayonInitial)
+		//if (centre.distanceToPoint(centreSphere) <= rayonInitial)
+		//if (opUnion(lesSpheres, centre))
+		//if (opInter(lesSpheres, centre))
+		if (opDiff(lesSpheres, centre))
 		{
 			cube(centreSphere, centre, rayonInitial, rayon);
 		}	
@@ -167,9 +227,6 @@ int main(int argc, char **argv)
 	glutIdleFunc(&window_idle);
 	// la boucle prinicipale de gestion des événements utilisateur
 	glutMainLoop();
-
-	
-
 
 	return 1;
 }
@@ -263,7 +320,7 @@ void multiDiv(std::vector<std::pair<Vector3D, float>> lesSpheres)
 		if (centreTemp.z()+rayonTemp > maxZ)
 			maxZ = centreTemp.z()+ rayonTemp;
 
-		subdivision(centreTemp, centreTemp, rayonTemp, rayonTemp, 5);
+		//subdivision(centreTemp, centreTemp, rayonTemp, rayonTemp, 5);
 	}
 
 	Vector3D centreGlobal((minX + maxX) / 2, (minY + maxY) / 2, (minY + maxY) / 2);
@@ -277,18 +334,21 @@ void multiDiv(std::vector<std::pair<Vector3D, float>> lesSpheres)
 	if (diffZ > max)
 		max = diffZ;
 
+	centreG = centreGlobal;
+	subdivision(centreGlobal, centreGlobal, max/2, max/2, 5);
+
 	cube(centreGlobal, centreGlobal, max/2, max/2);
 }
 
 void render_scene()
 {	
-	std::vector<std::pair<Vector3D, float>> lesSpheres;
+	lesSpheres.clear();
 	std::pair<Vector3D, float> sphere1(Vector3D(0.0, 0.0, 0.0), 6);
-	std::pair<Vector3D, float> sphere2(Vector3D(-5.0, -5.0, 0.0), 2);
+	std::pair<Vector3D, float> sphere2(Vector3D(-5.0, -5.0, 0.0), 6);
 
 	lesSpheres.push_back(sphere1);
 	lesSpheres.push_back(sphere2);
-	
+
 	multiDiv(lesSpheres);
 
 	//Vector3D centreSphere(0.0, 0.0, 0.0);
