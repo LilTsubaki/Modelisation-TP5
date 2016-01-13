@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TP05-Modelisation", "TP05-M
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TP06-Modelisation", "TP06-Modelisation\TP06-Modelisation.vcxproj", "{3EAA7BF0-E193-44E4-9686-E4546FE3FF04}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TP09-Modelisation", "TP09-Modelisation\TP09-Modelisation.vcxproj", "{C2333304-BEF1-4F60-974D-7EFB8FB650A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -29,6 +31,14 @@ Global
 		{3EAA7BF0-E193-44E4-9686-E4546FE3FF04}.Release|Win32.Build.0 = Release|Win32
 		{3EAA7BF0-E193-44E4-9686-E4546FE3FF04}.Release|x64.ActiveCfg = Release|x64
 		{3EAA7BF0-E193-44E4-9686-E4546FE3FF04}.Release|x64.Build.0 = Release|x64
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Debug|Win32.Build.0 = Debug|Win32
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Debug|x64.ActiveCfg = Debug|x64
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Debug|x64.Build.0 = Debug|x64
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Release|Win32.ActiveCfg = Release|Win32
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Release|Win32.Build.0 = Release|Win32
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Release|x64.ActiveCfg = Release|x64
+		{C2333304-BEF1-4F60-974D-7EFB8FB650A1}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
