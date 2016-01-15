@@ -58,6 +58,32 @@ void Maillage::Ecriture(std::string nom)
 	}
 }
 
+void Maillage::replaceTopo(int ancienIndice, int nouvelIndice)
+{
+	//std::cout << "début replace topo" << std::endl;
+	for (int i = 0; i < topo.size(); i++)
+	{
+		if (topo[i] == ancienIndice)
+			topo[i] = nouvelIndice;
+	}
+}
+
+void Maillage::supprDoublon()
+{
+	//std::cout << "début supprDoublon" << std::endl;
+	std::vector<int> newTopo;
+	for (int i = 0; i < topo.size(); i+=3)
+	{
+		if (topo[i] != topo[i + 1] && topo[i] != topo[i + 2] && topo[i+1] != topo[i + 2])
+		{
+			newTopo.push_back(topo[i]);
+			newTopo.push_back(topo[i+1]);
+			newTopo.push_back(topo[i+2]);
+		}
+	}
+	topo = newTopo;
+}
+
 Maillage Maillage::lectureOff(std::string nom, double taille)
 {
 	std::vector<Vector3D> geom;

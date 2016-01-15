@@ -43,7 +43,153 @@ static float rayon;
 static float rayonX;
 static float rayonY;
 static float rayonZ;
+static float finalSize;
 static std::vector<Vector3D> centreCube;
+
+void cube(Vector3D centre, float rayon)
+{
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
+	glEnd();
+
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
+	glEnd();
+
+
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
+	glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
+	glEnd();
+
+
+
+	glBegin(GL_LINE_LOOP);
+	glColor3f(1.0, 1.0, 1.0);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
+	glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
+	glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
+	glEnd();
+}
+
+void subdivision(Vector3D centre, float rayon, float rayonMin)
+{
+	std::vector<Vector3D> lesCentres;
+	if (rayon > rayonMin)
+	{
+		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() - rayon / 2, centre.z() - rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() + rayon / 2, centre.z() - rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() - rayon / 2, centre.z() - rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() + rayon / 2, centre.z() - rayon / 2));
+
+		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() - rayon / 2, centre.z() + rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() + rayon / 2, centre.z() + rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() - rayon / 2, centre.z() + rayon / 2));
+		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() + rayon / 2, centre.z() + rayon / 2));
+
+		for (int i = 0; i < lesCentres.size(); i++)
+		{
+			subdivision(lesCentres.at(i), rayon / 2, rayonMin);
+		}
+	}
+	else
+	{
+		finalSize = rayon;
+		centreCube.push_back(centre);
+		//cube(centre, rayon);
+	}
+}
+
+bool inDaBox(Vector3D centre, float rayonf, Vector3D vertex)
+{
+	//std::cout << vertex.x() << "  " << vertex.y() << "  " << vertex.z() << std::endl;
+	if (vertex.x() >= centre.x() - rayonf &&  vertex.x() < centre.x() + rayonf &&
+		vertex.y() >= centre.y() - rayonf &&  vertex.y() < centre.y() + rayonf &&
+		vertex.z() >= centre.z() - rayonf &&  vertex.z() < centre.z() + rayonf)
+		return true;
+	else
+		return false;
+}
+
+
+void simplification()
+{
+	std::cout << "debut simplification" << std::endl;
+	int newIndice;
+
+	bool first = false; 
+	int indiceCourant = 1;
+	std::vector<Vector3D> newVertex;
+	int centreCubeSize = centreCube.size();
+
+	std::vector<Vector3D> geom = maille.getGeom();
+
+	int geomSize = geom.size();
+
+	//je parcours tout les cubes
+	for (int i = 0; i < centreCubeSize; i++)
+	{
+		first = false;
+		//je parcours tout les points
+		for (int j = 0; j < geomSize; j++)
+		{
+			Vector3D pointTest = geom[j];
+			//je vérifie si un point appartient au cube
+			if (inDaBox(centreCube[i], finalSize, pointTest))
+			{
+				if (!first)
+				{
+					newIndice = j ;
+					first = true;
+				}
+				if (first && j!=newIndice)
+				{
+					maille.replaceTopo(j, newIndice);
+				}
+			}
+		}	
+	}
+	
+	maille.supprDoublon();
+
+	//maille.setGeom(newVertex);
+	std::cout << "fin simplification" << std::endl;
+	std::cout << newVertex.size() << std::endl;
+	std::cout << maille.getTopo().size() << std::endl;
+}
+
+
 
 int main(int argc, char **argv)
 {
@@ -64,9 +210,6 @@ int main(int argc, char **argv)
 	rayonY = (maille.yMax - maille.yMin) / maille.getScale();
 	rayonZ = (maille.zMax - maille.zMin) / maille.getScale();
 
-	std::cout << rayonX << std::endl;
-	std::cout << rayonY << std::endl;
-	std::cout << rayonZ << std::endl;
 
 	if (rayonX > rayonY)
 	{
@@ -82,6 +225,22 @@ int main(int argc, char **argv)
 		else
 			rayon = rayonZ;
 	}
+
+
+	std::vector<Vector3D> geometrie = maille.getGeom();
+	Vector3D centre = maille.getCentreGravite();
+	double scale = maille.getScale();
+
+	for (int i = 0; i < geometrie.size(); i++)
+	{
+		geometrie[i] = (geometrie[i] - centre) / scale;
+	}
+
+	maille.setGeom(geometrie);
+
+
+	subdivision(maille.getCentreGravite(), rayon, 1);
+	simplification();
 
 
 	// définition et création de la fenêtre graphique
@@ -121,19 +280,19 @@ GLvoid afficheMaille()
 	Vector3D centre = maille.getCentreGravite();
 	double scale = maille.getScale();
 
-
 	
 	//std::cout << maille.getTopo().size() << std::endl;
 	for (int i = 0; i < topologie.size(); i += 3)
 	{
-		a = (geometrie.at(topologie.at(i)) - centre) / scale;
-		b = (geometrie.at(topologie.at(i + 1)) - centre) / scale;
-		c = (geometrie.at(topologie.at(i + 2)) - centre) / scale;
+		a = (geometrie.at(topologie.at(i)));// -centre) / scale;
+		b = (geometrie.at(topologie.at(i + 1)));// -centre) / scale;
+		c = (geometrie.at(topologie.at(i + 2)));// -centre) / scale;
+
 		//std::cout << "a : " << a.x() << " | " <<  a.y()<< " | " <<  a.z() << std::endl;
 		//std::cout << "b : " << b.x() << " | " <<  b.y()<< " | " <<  b.z() << std::endl;
 		//std::cout << "c : " << c.x() << " | " <<  c.y()<< " | " <<  c.z() << std::endl;
 
-		glNormal3d(normales.at(cptNormale).x(), normales.at(cptNormale).y(), normales.at(cptNormale).z());
+		//glNormal3d(normales.at(cptNormale).x(), normales.at(cptNormale).y(), normales.at(cptNormale).z());
 		//std::cout << normales.at(cptNormale).x() << " | " <<  normales.at(cptNormale).y()<< " | " <<  normales.at(cptNormale).z() << std::endl;
 		glBegin(GL_TRIANGLES);
 		glVertex3f(a.x(), a.y(), a.z());
@@ -147,89 +306,6 @@ GLvoid afficheMaille()
 	//std::cout << "endload" << std::endl;
 }
 
-void cube(Vector3D centre, float rayon)
-{
-
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
-		glEnd();
-
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
-		glEnd();
-
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
-		glEnd();
-	
-
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
-		glEnd();
-	
-
-	
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() - rayon, centre.z() + rayon);
-		glVertex3f(centre.x() - rayon, centre.y() - rayon, centre.z() + rayon);
-		glEnd();
-	
-
-	
-		glBegin(GL_LINE_LOOP);
-		glColor3f(1.0, 1.0, 1.0);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() - rayon);
-		glVertex3f(centre.x() + rayon, centre.y() + rayon, centre.z() + rayon);
-		glVertex3f(centre.x() - rayon, centre.y() + rayon, centre.z() + rayon);
-		glEnd();
-}
-
-void subdivision(Vector3D centre, float rayon, float rayonMin)
-{
-	std::vector<Vector3D> lesCentres;
-	if (rayon > rayonMin)
-	{
-		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() - rayon / 2, centre.z() - rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() + rayon / 2, centre.z() - rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() - rayon / 2, centre.z() - rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() + rayon / 2, centre.z() - rayon / 2));
-
-		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() - rayon / 2, centre.z() + rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() - rayon / 2, centre.y() + rayon / 2, centre.z() + rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() - rayon / 2, centre.z() + rayon / 2));
-		lesCentres.push_back(Vector3D(centre.x() + rayon / 2, centre.y() + rayon / 2, centre.z() + rayon / 2));
-
-		for (int i = 0; i < lesCentres.size(); i++)
-		{
-			subdivision(lesCentres.at(i),  rayon / 2, rayonMin);
-		}
-	}
-	else
-	{
-		centreCube.push_back(centre);
-		cube(centre, rayon);
-	}
-}
 
 
 
@@ -323,7 +399,7 @@ GLvoid window_idle()
 
 void render_scene()
 {
-	centreCube.clear();
+	//centreCube.clear();
 	glRotated(1, 0, 1, 0);
 	afficheMaille();
 	//std::cout << (maille.xMax - maille.xMin)/maille.getScale() <<  std::endl;
@@ -331,7 +407,6 @@ void render_scene()
 	
 
 	//std::cout << rayon << std::endl;
-	subdivision(maille.getCentreGravite(), rayon, 1.5f);
-	std::cout << centreCube.size() << std::endl;
+	
 	
 }

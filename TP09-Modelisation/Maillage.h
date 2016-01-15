@@ -39,6 +39,9 @@ public:
 	// Utilitaires
 	static Maillage lectureOff(const std::string nom, double taille);
 	void Ecriture(std::string nom);
+	void replaceTopo(int ancienIndice, int nouvelIndice);
+	void supprDoublon();
+	void supprDoublon(int indice);
 	~Maillage();
 
 	std::vector<Vector3D> getGeom() const;
